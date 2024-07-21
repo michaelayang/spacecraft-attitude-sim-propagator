@@ -222,7 +222,7 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
         v.add(projectedSpacecraftTopPoints.get(2).get(1) - projectedSpacecraftTopPoints.get(1).get(1));
         v.add(projectedSpacecraftTopPoints.get(2).get(2) - projectedSpacecraftTopPoints.get(1).get(2));
         
-        if (LinearAlgebra.crossProduct(u, v).get(2) > 0) { // if z > 0, cross product points toward the viewer from the screen
+        if (LinearAlgebra.crossProduct3x3(u, v).get(2) > 0) { // if z > 0, cross product points toward the viewer from the screen
             visibleSpacecraft2DProjectedPolygons.add(projectedSpacecraftTopPoints);
         }
 
@@ -236,7 +236,7 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
         v.add(projectedSpacecraftBottomPoints.get(1).get(1) - projectedSpacecraftBottomPoints.get(0).get(1));
         v.add(projectedSpacecraftBottomPoints.get(1).get(2) - projectedSpacecraftBottomPoints.get(0).get(2));
         
-        if (LinearAlgebra.crossProduct(u, v).get(2) > 0) { // if z > 0, cross product points toward the viewer from the screen
+        if (LinearAlgebra.crossProduct3x3(u, v).get(2) > 0) { // if z > 0, cross product points toward the viewer from the screen
             visibleSpacecraft2DProjectedPolygons.add(projectedSpacecraftBottomPoints);
         }
 
@@ -263,7 +263,7 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
                 v.add(projectedSpacecraftTopPoints.get(i).get(2) - projectedSpacecraftBottomPoints.get(i).get(2));                
             }
             
-            if (LinearAlgebra.crossProduct(u, v).get(2) > 0) { // if z > 0, cross product points toward the viewer from the screen
+            if (LinearAlgebra.crossProduct3x3(u, v).get(2) > 0) { // if z > 0, cross product points toward the viewer from the screen
                 if (i < NUM_SPACECRAFT_BORDER_POINTS-1) {
                     List<List<Double>> spacecraftSidePolygon = new ArrayList<>();
                     spacecraftSidePolygon.add(projectedSpacecraftBottomPoints.get(i));

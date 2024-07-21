@@ -11,13 +11,13 @@ public class LinearAlgebra {
 
     Logger logger = LoggerFactory.getLogger(LinearAlgebra.class);
 
-    public static double dotProduct(List<Double> u,
-                                    List<Double> v) {
+    public static double dotProduct3x3(List<Double> u,
+                                       List<Double> v) {
         return u.get(0)*v.get(0) + u.get(1)*v.get(1) + u.get(2)*v.get(2);
     }
 
-    public static List<Double> crossProduct(List<Double> u,
-                                            List<Double> v) {
+    public static List<Double> crossProduct3x3(List<Double> u,
+                                               List<Double> v) {
         List<Double> result = new ArrayList<>();
 
         result.add(u.get(1)*v.get(2) - u.get(2)*v.get(1));
@@ -27,7 +27,7 @@ public class LinearAlgebra {
         return result;
     }
 
-    public static List<Double> matrixVectorMult(List<List<Double>> matrixA, List<Double> inputVector) {
+    public static List<Double> matrixVectorMult3x3(List<List<Double>> matrixA, List<Double> inputVector) {
         double a11 = matrixA.get(0).get(0);
         double a12 = matrixA.get(1).get(0);
         double a13 = matrixA.get(2).get(0);

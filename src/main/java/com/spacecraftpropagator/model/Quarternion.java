@@ -82,7 +82,7 @@ public class Quarternion {
     
         final List<Double> inputVector = Arrays.asList(x, y, z);
         
-        final List<Double> outputVector = LinearAlgebra.matrixVectorMult(Arrays.asList(xBasisVector, yBasisVector, zBasisVector), inputVector);
+        final List<Double> outputVector = LinearAlgebra.matrixVectorMult3x3(Arrays.asList(xBasisVector, yBasisVector, zBasisVector), inputVector);
 
         return new Quarternion(0.0, outputVector.get(0), outputVector.get(1), outputVector.get(2));
     }
@@ -100,10 +100,6 @@ public class Quarternion {
                                r0*y1 - x0*z1 + y0*r1 + z0*x1,
                                r0*z1 + x0*y1 - y0*x1 + z0*r1
                               );
-    }
-    
-    private Quarternion opposite() {
-        return new Quarternion(0.0, -x, -y, -z);
     }
     
     private Quarternion qInverse(double r, double x, double y, double z) {
