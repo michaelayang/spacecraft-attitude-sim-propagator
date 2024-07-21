@@ -51,9 +51,9 @@ public class SpacecraftPropagatorController {
     public List<Double> torque(@RequestBody TorqueRecord torqueRecord) {
         logger.info("******* torque torqueQuarternion is {} **********", torqueRecord.getTorqueQuarternion());
         logger.info("torque torqueNewtonMeters is {}", torqueRecord.getTorqueNewtonMeters());
-        logger.info("spacecraft attitude is {}", attitudeModelService.getAttitude());
+        logger.info("spacecraft xAxis is {}, yAxis is {}, zAxis is {}", attitudeModelService.getXAxisQuarternion(), attitudeModelService.getYAxisQuarternion(), attitudeModelService.getZAxisQuarternion());
 
-        final Quarternion coordTransformedTorqueQ = torqueRecord.getTorqueQuarternion().coordinateTransform(attitudeModelService.getInitialAttitude(), attitudeModelService.getAttitude());
+        final Quarternion coordTransformedTorqueQ = torqueRecord.getTorqueQuarternion().coordinateTransform(attitudeModelService.getXAxisQuarternion(), attitudeModelService.getYAxisQuarternion(), attitudeModelService.getZAxisQuarternion());
 
         return attitudeModelService.applyTorque(coordTransformedTorqueQ,
                                                 torqueRecord.getTorqueNewtonMeters(),

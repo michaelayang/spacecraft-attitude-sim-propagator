@@ -8,9 +8,9 @@ public interface AttitudeModelService {
     List<List<List<Double>>> init(double momentOfInertia);
     List<List<List<Double>>> step(double stepSeconds);
     List<Double> applyTorque(Quarternion torqueQuarternion, double torqueNewtonMeters, double numSeconds);
-    Quarternion getAttitude();
-    Quarternion getLastAttitude();
-    Quarternion getInitialAttitude();
+    Quarternion getXAxisQuarternion();
+    Quarternion getYAxisQuarternion();
+    Quarternion getZAxisQuarternion();
     List<List<Double>> getSpacecraftPoints();
     List<List<List<Double>>> getVisible2DProjectedSpacecraftPolygons();
 }

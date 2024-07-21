@@ -12,9 +12,6 @@ import org.springframework.stereotype.Service;
 import com.spacecraftpropagator.model.LinearAlgebra;
 import com.spacecraftpropagator.model.Quarternion;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Service
 public class AttitudeModelServiceImpl implements AttitudeModelService {
 
@@ -28,9 +25,9 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
     private double momentOfInertia; // kg-m^2
     private double radiansPerSecond;
 
-    private Quarternion attitudeQuarternion; // spacecraft attitude
-    private Quarternion initialAttitudeQuarternion; // initial spacecraft attitude
-    private Quarternion lastAttitudeQuarternion; // previous spacecraft attitude
+    private Quarternion xAxisQuarternion = new Quarternion(0.0, 1.0, 0.0, 0.0);;
+    private Quarternion yAxisQuarternion = new Quarternion(0.0, 0.0, 1.0, 0.0);;
+    private Quarternion zAxisQuarternion = new Quarternion(0.0, 0.0, 0.0, 1.0);;
     
     private Quarternion angularVelocityQuarternion; // rotation axis
 
@@ -63,10 +60,6 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
         rodPoints.add(Arrays.asList(0.0, 0.0, (SPACECRAFT_HEIGHT/2.0)+SPACECRAFT_ROD_LENGTH));
 
         angularVelocityQuarternion = new Quarternion(0.0, 0.0, 0.0, 0.0);
-
-        attitudeQuarternion = new Quarternion(0.0, 0.0, 0.0, 1.0);
-        initialAttitudeQuarternion = new Quarternion(attitudeQuarternion.getR(), attitudeQuarternion.getX(), attitudeQuarternion.getY(), attitudeQuarternion.getZ());
-        lastAttitudeQuarternion = initialAttitudeQuarternion;
         
         radiansPerSecond = 0.0;
         
@@ -116,9 +109,9 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
                 rodPoints.set(i, coords);
             }
 
-            lastAttitudeQuarternion = attitudeQuarternion;
-            attitudeQuarternion = attitudeQuarternion.rotate(angularVelocityQuarternion, radiansToRotate);
-            
+            xAxisQuarternion = xAxisQuarternion.rotate(angularVelocityQuarternion, radiansToRotate);
+            yAxisQuarternion = yAxisQuarternion.rotate(angularVelocityQuarternion, radiansToRotate);
+            zAxisQuarternion = zAxisQuarternion.rotate(angularVelocityQuarternion, radiansToRotate);
         }
 
         return getVisible2DProjectedSpacecraftPolygons();
@@ -177,24 +170,22 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
         
         logger.info("After torque, the new angularVelocityQuarternion is:  {}", angularVelocityQuarternion);
 
-        final List<Double> returnCoords = Arrays.asList(getAttitude().getR(), getAttitude().getX(), getAttitude().getY(), getAttitude().getZ());
+        final List<Double> returnCoords = Arrays.asList(getZAxisQuarternion().getR(), getZAxisQuarternion().getX(), getZAxisQuarternion().getY(), getZAxisQuarternion().getZ());
 
         return returnCoords;
     }
-
     @Override
-    public Quarternion getAttitude() {
-        return attitudeQuarternion;
+    public Quarternion getXAxisQuarternion() {
+        return xAxisQuarternion;
+    }
+    @Override
+    public Quarternion getYAxisQuarternion() {
+        return yAxisQuarternion;
     }
 
     @Override
-    public Quarternion getLastAttitude() {
-        return lastAttitudeQuarternion;
-    }
-
-    @Override
-    public Quarternion getInitialAttitude() {
-        return initialAttitudeQuarternion;
+    public Quarternion getZAxisQuarternion() {
+        return zAxisQuarternion;
     }
     
     @Override
