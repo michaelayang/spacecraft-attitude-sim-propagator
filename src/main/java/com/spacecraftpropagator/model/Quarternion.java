@@ -23,16 +23,6 @@ public class Quarternion {
     private double x;
     private double y;
     private double z;
-
-    private static final Quarternion INITIAL_X_AXIS = new Quarternion(0.0, 1.0, 0.0, 0.0);
-    private static final Quarternion INITIAL_MINUS_X_AXIS = new Quarternion(0.0, -1.0, 0.0, 0.0);
-
-    private static final Quarternion INITIAL_Y_AXIS = new Quarternion(0.0, 0.0, 1.0, 0.0);
-    private static final Quarternion INITIAL_MINUS_Y_AXIS = new Quarternion(0.0, 0.0, -1.0, 0.0);
-
-    private static final Quarternion INITIAL_Z_AXIS = new Quarternion(0.0, 0.0, 0.0, 1.0);
-    private static final Quarternion INITIAL_MINUS_Z_AXIS = new Quarternion(0.0, 0.0, 0.0, -1.0);
-
    
     public Quarternion(double r,
                        double x,
@@ -86,48 +76,15 @@ public class Quarternion {
     
     public Quarternion coordinateTransform(Quarternion xAxisQuarternion, Quarternion yAxisQuarternion, Quarternion zAxisQuarternion) {
         
-        final Quarternion oldBasisQuarternion;
-        final Quarternion newBasisQuarternion;
+        final List<Double> xBasisVector = Arrays.asList(xAxisQuarternion.getX(), xAxisQuarternion.getY(), xAxisQuarternion.getZ());
+        final List<Double> yBasisVector = Arrays.asList(yAxisQuarternion.getX(), yAxisQuarternion.getY(), yAxisQuarternion.getZ());
+        final List<Double> zBasisVector = Arrays.asList(zAxisQuarternion.getX(), zAxisQuarternion.getY(), zAxisQuarternion.getZ());
+    
+        final List<Double> inputVector = Arrays.asList(x, y, z);
         
-        if (this.equals(INITIAL_X_AXIS)) {
-            oldBasisQuarternion = INITIAL_X_AXIS;
-            newBasisQuarternion = xAxisQuarternion;
-        } else if (this.equals(INITIAL_MINUS_X_AXIS)) {
-            oldBasisQuarternion = INITIAL_MINUS_X_AXIS;
-            newBasisQuarternion = xAxisQuarternion.opposite();
-        } else if (this.equals(INITIAL_Y_AXIS)) {
-            oldBasisQuarternion = INITIAL_Y_AXIS;
-            newBasisQuarternion = yAxisQuarternion;
-        } else if (this.equals(INITIAL_MINUS_Y_AXIS)) {
-            oldBasisQuarternion = INITIAL_MINUS_Y_AXIS;
-            newBasisQuarternion = yAxisQuarternion.opposite();
-        } else if (this.equals(INITIAL_Z_AXIS)) {
-            oldBasisQuarternion = INITIAL_Z_AXIS;
-            newBasisQuarternion = zAxisQuarternion;
-        } else if (this.equals(INITIAL_MINUS_Z_AXIS)) {
-            oldBasisQuarternion = INITIAL_MINUS_Z_AXIS;
-            newBasisQuarternion = zAxisQuarternion.opposite();
-        } else {
-            oldBasisQuarternion = INITIAL_Z_AXIS;
-            newBasisQuarternion = zAxisQuarternion;            
-        }
+        final List<Double> outputVector = LinearAlgebra.matrixVectorMult(Arrays.asList(xBasisVector, yBasisVector, zBasisVector), inputVector);
 
-        final List<Double> oldBasisVector = Arrays.asList(oldBasisQuarternion.getX(), oldBasisQuarternion.getY(), oldBasisQuarternion.getZ());
-        final List<Double> newBasisVector = Arrays.asList(newBasisQuarternion.getX(), newBasisQuarternion.getY(), newBasisQuarternion.getZ());
-        
-        final List<Double> axisVector = LinearAlgebra.crossProduct(oldBasisVector, newBasisVector);
-        final double axisNorm = Math.sqrt(axisVector.get(0)*axisVector.get(0)
-                                          + axisVector.get(1)*axisVector.get(1)
-                                          + axisVector.get(2)*axisVector.get(2));
-        final Quarternion axisQuarternion;
-        if (axisNorm != 0) {
-            axisQuarternion = new Quarternion(0, axisVector.get(0)/axisNorm, axisVector.get(1)/axisNorm, axisVector.get(2)/axisNorm);
-        } else {
-            axisQuarternion = new Quarternion(oldBasisQuarternion.getR(), oldBasisQuarternion.getX(), oldBasisQuarternion.getY(), oldBasisQuarternion.getZ());
-        }
-        final double angleToRotate = Math.acos(LinearAlgebra.dotProduct(oldBasisVector, newBasisVector)); // angle between two basis vectors here
-
-        return rotate(axisQuarternion, angleToRotate);
+        return new Quarternion(0.0, outputVector.get(0), outputVector.get(1), outputVector.get(2));
     }
     
     private Quarternion qMultiply(double r0,
