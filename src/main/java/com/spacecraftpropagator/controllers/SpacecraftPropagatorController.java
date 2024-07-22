@@ -1,5 +1,6 @@
 package com.spacecraftpropagator.controllers;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.spacecraftpropagator.model.LinearAlgebra;
 import com.spacecraftpropagator.model.Quarternion;
 import com.spacecraftpropagator.model.TorqueRecord;
 import com.spacecraftpropagator.services.AttitudeModelService;
@@ -58,5 +60,18 @@ public class SpacecraftPropagatorController {
         return attitudeModelService.applyTorque(coordTransformedTorqueQ,
                                                 torqueRecord.getTorqueNewtonMeters(),
                                                 torqueRecord.getSecondsToApplyTorque());
+    }
+    
+    @RequestMapping(value = "/getSunSensorValue", method = RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+    public double getSunSensorValue() {
+        final List<Double> yAxisCoords = Arrays.asList(attitudeModelService.getYAxisQuarternion().getX(),
+                                                       attitudeModelService.getYAxisQuarternion().getY(),
+                                                       attitudeModelService.getYAxisQuarternion().getZ());
+        final List<Double> sunVector = Arrays.asList(0.0, -1.0, 0.0);
+        double sunSensorValue = LinearAlgebra.dotProduct3x3(yAxisCoords, sunVector); // will return cosine of angle between spacecraft Y axis and sun vector towards left side of screen
+        
+        logger.info("spacecraft sun sensor value is {}", sunSensorValue);
+
+        return sunSensorValue;
     }
 }
