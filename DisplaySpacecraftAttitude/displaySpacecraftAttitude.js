@@ -58,10 +58,12 @@ angular.module('DisplaySpacecraftAttitude', []).controller("mainController", fun
   var DRAWING_CENTER          = canvas.width/2;
   var DRAWING_RADIUS_PIXELS   = canvas.width/10;
   var angularVelocityQuarternion = [ 0.0, 0.0, 0.0, 1.0 ];
-  var torqueCounterClockwiseQuarternion = [ 0.0, 0.0, 0.0, 1.0 ];
-  var torqueClockwiseQuarternion = [ 0.0, 0.0, 0.0, -1.0 ];
-  var torqueUpQuarternion = [ 0.0, -1.0, 0.0, 0.0 ];
-  var torqueDownQuarternion = [ 0.0, 1.0, 0.0, 0.0 ];
+  var torqueZCounterClockwiseQuarternion = [ 0.0, 0.0, 0.0, 1.0 ];
+  var torqueZClockwiseQuarternion = [ 0.0, 0.0, 0.0, -1.0 ];
+  var torqueXCounterClockwiseQuarternion = [ 0.0, 1.0, 0.0, 0.0 ];
+  var torqueXClockwiseQuarternion = [ 0.0, -1.0, 0.0, 0.0 ];
+  var torqueYCounterClockwiseQuarternion = [ 0.0, 0.0, 1.0, 0.0 ];
+  var torqueYClockwiseQuarternion = [ 0.0, 0.0, -1.0, 0.0 ];
 
   var drawSpacecraftPoints = function(spacecraftPointsRecords) {
     var drawingMaxLength = DRAWING_RADIUS_PIXELS/10;
@@ -146,7 +148,7 @@ angular.module('DisplaySpacecraftAttitude', []).controller("mainController", fun
       canvasContext.strokeText("Spacecraft is initialized.", 0, 25);
 
       clearCanvas();
-      canvasContext.strokeText("Initial Counter-clockwise torque JSON is "
+      canvasContext.strokeText("Initial Z Counter-clockwise torque JSON is "
                                + "{ \"torqueQuarternion\": { \"r\": " + torqueCounterClockwiseQuarternion[0] + ", \"x\": " + torqueCounterClockwiseQuarternion[1] + ", \"y\": " + torqueCounterClockwiseQuarternion[2] + ", \"z\": " + torqueCounterClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": -1.0, \"secondsToApplyTorque\":  1.0 }"
                                //+ JSON.stringify({ torqueQuarternion: { r: 0, x: 0, y: 0, z: 1 }, torqueNewtonMeters: -1.0, secondsToApplyTorque:  1.0 })
                                , 0, 25);
@@ -199,63 +201,93 @@ angular.module('DisplaySpacecraftAttitude', []).controller("mainController", fun
     simulate();
   };
 
-  $scope.torqueCounterClockwise = function() {
+  $scope.torqueZCounterClockwise = function() {
     $http.post("http://localhost:8080/torque",
-               "{ \"torqueQuarternion\": { \"r\": " + torqueCounterClockwiseQuarternion[0] + ", \"x\": " + torqueCounterClockwiseQuarternion[1] + ", \"y\": " + torqueCounterClockwiseQuarternion[2] + ", \"z\": " + torqueCounterClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
+               "{ \"torqueQuarternion\": { \"r\": " + torqueZCounterClockwiseQuarternion[0] + ", \"x\": " + torqueZCounterClockwiseQuarternion[1] + ", \"y\": " + torqueZCounterClockwiseQuarternion[2] + ", \"z\": " + torqueZCounterClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
       .then(function(torqueCounterClockwiseResponse) {
       angularVelocityQuarternion = JSON.stringify(torqueCounterClockwiseResponse.data);
 
       clearCanvas();
-      canvasContext.strokeText("Torquing counter-clockwise..." + angularVelocityQuarternion, 0, 25);
+      canvasContext.strokeText("Torquing Z counter-clockwise..." + angularVelocityQuarternion, 0, 25);
 
     }, function(errorResponse) {
       clearCanvas();
-      canvasContext.strokeText("Error while torquing counter-clockwise... " + errorResponse.d, 0, 25);
+      canvasContext.strokeText("Error while torquing Z counter-clockwise... " + errorResponse.d, 0, 25);
     });
   }
 
-  $scope.torqueClockwise = function() {
+  $scope.torqueZClockwise = function() {
     $http.post("http://localhost:8080/torque",
-               "{ \"torqueQuarternion\": { \"r\": " + torqueClockwiseQuarternion[0] + ", \"x\": " + torqueClockwiseQuarternion[1] + ", \"y\": " + torqueClockwiseQuarternion[2] + ", \"z\": " + torqueClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
+               "{ \"torqueQuarternion\": { \"r\": " + torqueZClockwiseQuarternion[0] + ", \"x\": " + torqueZClockwiseQuarternion[1] + ", \"y\": " + torqueZClockwiseQuarternion[2] + ", \"z\": " + torqueZClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
       .then(function(torqueClockwiseResponse) {
       angularVelocityQuarternion = JSON.stringify(torqueClockwiseResponse.data);
 
       clearCanvas();
-      canvasContext.strokeText("Torquing clockwise..." + angularVelocityQuarternion, 0, 25);
+      canvasContext.strokeText("Torquing Z clockwise..." + angularVelocityQuarternion, 0, 25);
 
     }, function(errorResponse) {
       clearCanvas();
-      canvasContext.strokeText("Error while torquing clockwise... " + errorResponse.d, 0, 25);
+      canvasContext.strokeText("Error while torquing Z clockwise... " + errorResponse.d, 0, 25);
     });
   }
 
-  $scope.torqueUp = function() {
+  $scope.torqueXCounterClockwise = function() {
     $http.post("http://localhost:8080/torque",
-               "{ \"torqueQuarternion\": { \"r\": " + torqueUpQuarternion[0] + ", \"x\": " + torqueUpQuarternion[1] + ", \"y\": " + torqueUpQuarternion[2] + ", \"z\": " + torqueUpQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
-      .then(function(torqueUpResponse) {
-      angularVelocityQuarternion = JSON.stringify(torqueUpResponse.data);
+               "{ \"torqueQuarternion\": { \"r\": " + torqueXCounterClockwiseQuarternion[0] + ", \"x\": " + torqueXCounterClockwiseQuarternion[1] + ", \"y\": " + torqueXCounterClockwiseQuarternion[2] + ", \"z\": " + torqueXCounterClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
+      .then(function(torqueCounterClockwiseResponse) {
+      angularVelocityQuarternion = JSON.stringify(torqueCounterClockwiseResponse.data);
 
       clearCanvas();
-      canvasContext.strokeText("Torquing up..." + angularVelocityQuarternion, 0, 25);
+      canvasContext.strokeText("Torquing X Counter-Clockwise..." + angularVelocityQuarternion, 0, 25);
 
     }, function(errorResponse) {
       clearCanvas();
-      canvasContext.strokeText("Error while torquing up... " + errorResponse.d, 0, 25);
+      canvasContext.strokeText("Error while torquing X Counter-Clockwise... " + errorResponse.d, 0, 25);
     });
   }
 
-  $scope.torqueDown = function() {
+  $scope.torqueXClockwise = function() {
     $http.post("http://localhost:8080/torque",
-               "{ \"torqueQuarternion\": { \"r\": " + torqueDownQuarternion[0] + ", \"x\": " + torqueDownQuarternion[1] + ", \"y\": " + torqueDownQuarternion[2] + ", \"z\": " + torqueDownQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
-      .then(function(torqueDownResponse) {
-      angularVelocityQuarternion = JSON.stringify(torqueDownResponse.data);
+               "{ \"torqueQuarternion\": { \"r\": " + torqueXClockwiseQuarternion[0] + ", \"x\": " + torqueXClockwiseQuarternion[1] + ", \"y\": " + torqueXClockwiseQuarternion[2] + ", \"z\": " + torqueXClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
+      .then(function(torqueClockwiseResponse) {
+      angularVelocityQuarternion = JSON.stringify(torqueClockwiseResponse.data);
 
       clearCanvas();
-      canvasContext.strokeText("Torquing down..." + angularVelocityQuarternion, 0, 25);
+      canvasContext.strokeText("Torquing X Clockwise..." + angularVelocityQuarternion, 0, 25);
 
     }, function(errorResponse) {
       clearCanvas();
-      canvasContext.strokeText("Error while torquing down... " + errorResponse.d, 0, 25);
+      canvasContext.strokeText("Error while torquing X Clockwise... " + errorResponse.d, 0, 25);
+    });
+  }
+
+  $scope.torqueYCounterClockwise = function() {
+    $http.post("http://localhost:8080/torque",
+               "{ \"torqueQuarternion\": { \"r\": " + torqueYCounterClockwiseQuarternion[0] + ", \"x\": " + torqueYCounterClockwiseQuarternion[1] + ", \"y\": " + torqueYCounterClockwiseQuarternion[2] + ", \"z\": " + torqueYCounterClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
+      .then(function(torqueClockwiseResponse) {
+      angularVelocityQuarternion = JSON.stringify(torqueClockwiseResponse.data);
+
+      clearCanvas();
+      canvasContext.strokeText("Torquing Y Counter-Clockwise..." + angularVelocityQuarternion, 0, 25);
+
+    }, function(errorResponse) {
+      clearCanvas();
+      canvasContext.strokeText("Error while torquing Y Counter-Clockwise... " + errorResponse.d, 0, 25);
+    });
+  }
+
+  $scope.torqueYClockwise = function() {
+    $http.post("http://localhost:8080/torque",
+               "{ \"torqueQuarternion\": { \"r\": " + torqueYClockwiseQuarternion[0] + ", \"x\": " + torqueYClockwiseQuarternion[1] + ", \"y\": " + torqueYClockwiseQuarternion[2] + ", \"z\": " + torqueYClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
+      .then(function(torqueClockwiseResponse) {
+      angularVelocityQuarternion = JSON.stringify(torqueClockwiseResponse.data);
+
+      clearCanvas();
+      canvasContext.strokeText("Torquing Y Clockwise..." + angularVelocityQuarternion, 0, 25);
+
+    }, function(errorResponse) {
+      clearCanvas();
+      canvasContext.strokeText("Error while torquing Y Clockwise... " + errorResponse.d, 0, 25);
     });
   }
 
