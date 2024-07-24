@@ -58,7 +58,9 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
         
         rodPoints.add(Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0));
         rodPoints.add(Arrays.asList(0.0, 0.0, (SPACECRAFT_HEIGHT/2.0)+SPACECRAFT_ROD_LENGTH));
-
+        rodPoints.add(Arrays.asList(-1.0, 0.0, (SPACECRAFT_HEIGHT/2.0)+SPACECRAFT_ROD_LENGTH));
+        rodPoints.add(Arrays.asList(0.0, 0.0, (SPACECRAFT_HEIGHT/2.0)+SPACECRAFT_ROD_LENGTH));
+        
         angularVelocityQuarternion = new Quarternion(0.0, 0.0, 0.0, 0.0);
         
         radiansPerSecond = 0.0;
@@ -99,7 +101,7 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
                 spacecraftBottomPoints.set(i, coords);
             }
 
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < rodPoints.size(); i++) {
                 List<Double> coords = rodPoints.get(i);
                 Quarternion q = new Quarternion(0, coords.get(0), coords.get(1), coords.get(2));
                 q = q.rotate(angularVelocityQuarternion, radiansToRotate);
