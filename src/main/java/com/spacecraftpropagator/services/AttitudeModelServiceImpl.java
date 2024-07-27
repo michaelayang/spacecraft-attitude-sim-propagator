@@ -72,7 +72,7 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
     }
 
     @Override
-    public List<List<List<Double>>> step(double stepSeconds) {
+    public synchronized List<List<List<Double>>> step(double stepSeconds) {
         
         double radiansToRotateX = radiansPerSecondX/stepSeconds;
         double radiansToRotateY = radiansPerSecondY/stepSeconds;
@@ -118,7 +118,7 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
     }
 
     @Override
-    public List<Double> applyTorque(Quarternion torqueQuarternion, double torqueNewtonMeters, double numSeconds) {
+    public synchronized List<Double> applyTorque(Quarternion torqueQuarternion, double torqueNewtonMeters, double numSeconds) {
         double angularAcceleration = torqueNewtonMeters / momentOfInertia; // radians per second per second
         double angularVelocityDelta = angularAcceleration * numSeconds;
         
@@ -141,14 +141,14 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
         radiansPerSecondY += angularVelocityDeltaY;
         radiansPerSecondZ += angularVelocityDeltaZ;
 
-        logger.info("angularVelocityDelta is {}", angularVelocityDelta);
-        logger.info("xAxisTorque is {}, yAxisTorque is {}, zAxisTorque is {}",
-                    xAxisTorque, yAxisTorque, zAxisTorque);
-        logger.info("angularVelocityDeltaX is {}, angularVelocityDeltaY is {}, angularVelocityDeltaZ is {}",
-                angularVelocityDeltaX, angularVelocityDeltaY, angularVelocityDeltaZ);
-        logger.info("radiansPerSecondX is {}, radiansPerSecondY is {}, radiansPerSecondZ is {}",
-                    radiansPerSecondX, radiansPerSecondY, radiansPerSecondZ);
- 
+//        logger.info("angularVelocityDelta is {}", angularVelocityDelta);
+//        logger.info("xAxisTorque is {}, yAxisTorque is {}, zAxisTorque is {}",
+//                    xAxisTorque, yAxisTorque, zAxisTorque);
+//        logger.info("angularVelocityDeltaX is {}, angularVelocityDeltaY is {}, angularVelocityDeltaZ is {}",
+//                angularVelocityDeltaX, angularVelocityDeltaY, angularVelocityDeltaZ);
+//        logger.info("radiansPerSecondX is {}, radiansPerSecondY is {}, radiansPerSecondZ is {}",
+//                    radiansPerSecondX, radiansPerSecondY, radiansPerSecondZ);
+
         return Arrays.asList(zAxisQuarternion.getX(), zAxisQuarternion.getY(), zAxisQuarternion.getZ());
     }
 
@@ -189,6 +189,16 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
         final List<List<Double>> projectedRodPoints = rodPoints.stream()
                 .map(coords -> get2DProjectedSpacecraftCoords(coords))
                 .collect(Collectors.toList());
+        final List<List<Double>> projectedAxisPoints =
+                Arrays.asList(Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0),
+                              Arrays.asList(xAxisQuarternion.getX()*7, xAxisQuarternion.getY()*7, xAxisQuarternion.getZ()*7),
+                              Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0),
+                              Arrays.asList(yAxisQuarternion.getX()*7, yAxisQuarternion.getY()*7, yAxisQuarternion.getZ()*7),
+                              Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0),
+                              Arrays.asList(zAxisQuarternion.getX()*7, zAxisQuarternion.getY()*7, zAxisQuarternion.getZ()*7),
+                              Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0)
+                             )
+                      .stream().map(coords -> get2DProjectedSpacecraftCoords(coords)).collect(Collectors.toList());
         
         List<Double> u = new ArrayList<>();
         u.add(projectedSpacecraftTopPoints.get(1).get(0) - projectedSpacecraftTopPoints.get(0).get(0));
@@ -261,16 +271,29 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
         }
 
         visibleSpacecraft2DProjectedPolygons.add(projectedRodPoints);
-        
+
+        //visibleSpacecraft2DProjectedPolygons.add(projectedAxisPoints);
+ 
         return visibleSpacecraft2DProjectedPolygons;
     }
 
     private Quarternion rotate(Quarternion q, double radiansToRotateX, double radiansToRotateY, double radiansToRotateZ) {
-        q = q.rotate(xAxisQuarternion, radiansToRotateX);
-        q = q.rotate(yAxisQuarternion, radiansToRotateY);
-        q = q.rotate(zAxisQuarternion, radiansToRotateZ);
-        
-        return q;
+        Quarternion q1 = new Quarternion(q.getR(), q.getX(), q.getY(), q.getZ());
+        if (q.getX() != xAxisQuarternion.getX() || q.getY() != xAxisQuarternion.getY() || q.getZ() != xAxisQuarternion.getZ()) {
+            q1 = q.rotate(xAxisQuarternion, radiansToRotateX);
+        }
+
+        Quarternion q2 = new Quarternion(q1.getR(), q1.getX(), q1.getY(), q1.getZ());
+        if (q.getX() != yAxisQuarternion.getX() || q.getY() != yAxisQuarternion.getY() || q.getZ() != yAxisQuarternion.getZ()) {
+            q2 = q1.rotate(yAxisQuarternion, radiansToRotateY);
+        }
+
+        Quarternion q3 = new Quarternion(q2.getR(), q2.getX(), q2.getY(), q2.getZ());
+        if (q.getX() != zAxisQuarternion.getX() || q.getY() != zAxisQuarternion.getY() || q.getZ() != zAxisQuarternion.getZ()) {
+            q3 = q2.rotate(zAxisQuarternion, radiansToRotateZ);
+        }
+
+        return q3;
     }
 
     private List<Double> get2DProjectedSpacecraftCoords(List<Double> coords) {

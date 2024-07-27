@@ -40,7 +40,7 @@ public class SpacecraftPropagatorController {
     }
     
     @RequestMapping(value = "/step", method = RequestMethod.POST, produces=MediaType.APPLICATION_JSON_VALUE)
-    public List<List<List<Double>>> step(@RequestBody Double stepSeconds) {
+    public synchronized List<List<List<Double>>> step(@RequestBody Double stepSeconds) {
         //logger.info("stepSeconds param is {}", stepSeconds);
         List<List<List<Double>>> spacecraftPoints = attitudeModelService.step(stepSeconds);
         if (spacecraftPoints == null || spacecraftPoints.isEmpty()) {
@@ -50,10 +50,11 @@ public class SpacecraftPropagatorController {
     }
 
     @RequestMapping(value = "/torque", method = RequestMethod.POST, produces=MediaType.APPLICATION_JSON_VALUE)
-    public List<Double> torque(@RequestBody TorqueRecord torqueRecord) {
+    public synchronized List<Double> torque(@RequestBody TorqueRecord torqueRecord) {
         logger.info("******* torque torqueQuarternion is {} **********", torqueRecord.getTorqueQuarternion());
         logger.info("torque torqueNewtonMeters is {}", torqueRecord.getTorqueNewtonMeters());
         logger.info("spacecraft xAxis is {}, yAxis is {}, zAxis is {}", attitudeModelService.getXAxisQuarternion(), attitudeModelService.getYAxisQuarternion(), attitudeModelService.getZAxisQuarternion());
+        logger.info("spacecraft xAxis norm is {}, yAxis norm is {}, zAxis norm is {}", attitudeModelService.getXAxisQuarternion().norm(), attitudeModelService.getYAxisQuarternion().norm(), attitudeModelService.getZAxisQuarternion().norm());
 
         final Quarternion coordTransformedTorqueQ = torqueRecord.getTorqueQuarternion().coordinateTransform(attitudeModelService.getXAxisQuarternion(), attitudeModelService.getYAxisQuarternion(), attitudeModelService.getZAxisQuarternion());
 
@@ -61,7 +62,7 @@ public class SpacecraftPropagatorController {
                                                 torqueRecord.getTorqueNewtonMeters(),
                                                 torqueRecord.getSecondsToApplyTorque());
     }
-    
+
     @RequestMapping(value = "/getSunSensorValue", method = RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
     public double getSunSensorValue() {
         final List<Double> yAxisCoords = Arrays.asList(attitudeModelService.getYAxisQuarternion().getX(),

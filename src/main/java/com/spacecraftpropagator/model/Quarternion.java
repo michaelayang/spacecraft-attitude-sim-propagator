@@ -47,25 +47,14 @@ public class Quarternion {
                                         unitAxisQuarternion.x * Math.sin(angleToRotate/2.0),
                                         unitAxisQuarternion.y * Math.sin(angleToRotate/2.0),
                                         unitAxisQuarternion.z * Math.sin(angleToRotate/2.0));
-//        norm = q.norm();
-//        q = new Quarternion(q.r/norm, q.x/norm, q.y/norm, q.z/norm);
 
         Quarternion intermediateQ = qMultiply(q.r, q.x, q.y, q.z,
                                               r, x, y, z);
-//        norm = intermediateQ.norm();
-//        intermediateQ = new Quarternion(intermediateQ.r/norm, intermediateQ.x/norm, intermediateQ.y/norm, intermediateQ.z/norm);
-        
-        Quarternion inverseQ = qInverse(q.r, q.x, q.y, q.z);
-//        norm = inverseQ.norm();
-//        inverseQ = new Quarternion(inverseQ.r/norm, inverseQ.x/norm, inverseQ.y/norm, inverseQ.z/norm);
-        
-        Quarternion resultQ = qMultiply(intermediateQ.r, intermediateQ.x, intermediateQ.y, intermediateQ.z,
-                inverseQ.r, inverseQ.x, inverseQ.y, inverseQ.z);
-        
-//        norm = resultQ.norm();
-//        resultQ = new Quarternion(resultQ.r/norm, resultQ.x/norm, resultQ.y/norm, resultQ.z/norm);
 
-        //logger.info("resultQ:  {}", resultQ);
+        Quarternion inverseQ = qInverse(q.r, q.x, q.y, q.z);
+
+        Quarternion resultQ = qMultiply(intermediateQ.r, intermediateQ.x, intermediateQ.y, intermediateQ.z,
+                                        inverseQ.r, inverseQ.x, inverseQ.y, inverseQ.z);
         
         return resultQ;
     }
