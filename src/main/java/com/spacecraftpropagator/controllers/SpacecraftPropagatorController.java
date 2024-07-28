@@ -71,7 +71,8 @@ public class SpacecraftPropagatorController {
         final List<Double> sunVector = Arrays.asList(0.0, -1.0, 0.0);
         double sunSensorValue = LinearAlgebra.dotProduct3x3(yAxisCoords, sunVector); // will return cosine of angle between spacecraft Y axis and sun vector towards left side of screen
         
-        logger.info("spacecraft sun sensor value is {}", sunSensorValue);
+        logger.info("+++++++++++++++ yAxis is {}, spacecraft sun sensor value is {} +++++++++++",
+                    attitudeModelService.getYAxisQuarternion(), sunSensorValue);
 
         return sunSensorValue;
     }
