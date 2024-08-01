@@ -11,6 +11,5 @@ public interface AttitudeModelService {
     Quarternion getXAxisQuarternion();
     Quarternion getYAxisQuarternion();
     Quarternion getZAxisQuarternion();
-    List<List<Double>> getSpacecraftPoints();
     List<List<List<Double>>> getVisible2DProjectedSpacecraftPolygons();
 }

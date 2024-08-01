@@ -17,14 +17,12 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
 
     private static int NUM_SPACECRAFT_BORDER_POINTS = 6;
     private static double SPACECRAFT_VERTEX_RADIUS = 10; // meters
-    private static double SPACECRAFT_ROD_LENGTH = 5; // meters
     private static double SPACECRAFT_HEIGHT = 6.0; // meters
     private static double VIEWING_DISTANCE = 100; // 100 m
 
     private double momentOfInertiaX; // kg-m^2
     private double momentOfInertiaY; // kg-m^2
     private double momentOfInertiaZ; // kg-m^2
-
     
     private double radiansPerSecondX = 0.0;
     private double radiansPerSecondY = 0.0;
@@ -34,36 +32,81 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
     private Quarternion yAxisQuarternion = new Quarternion(0.0, 0.0, 1.0, 0.0);
     private Quarternion zAxisQuarternion = new Quarternion(0.0, 0.0, 0.0, 1.0);
 
-    private List<List<Double>> spacecraftTopPoints;
-    private List<List<Double>> spacecraftBottomPoints;
-    private List<List<Double>> rodPoints;
-    
+    private List<List<List<Double>>> spacecraftPolygons;
+
     Logger logger = LoggerFactory.getLogger(AttitudeModelServiceImpl.class);
 
     public AttitudeModelServiceImpl() {
-        spacecraftTopPoints = new ArrayList<>();
-        spacecraftBottomPoints = new ArrayList<>();
-        rodPoints = new ArrayList<>();
+        spacecraftPolygons = new ArrayList<>();
         
+        List<List<Double>> polygonPoints = new ArrayList<>();
+
         for (int i = 0; i < NUM_SPACECRAFT_BORDER_POINTS; i++) {
             List<Double> coords = new ArrayList<>();
             coords.add(Math.cos(2.0*Math.PI*(double)i/(double)NUM_SPACECRAFT_BORDER_POINTS)*SPACECRAFT_VERTEX_RADIUS); // x
             coords.add(Math.sin(2.0*Math.PI*(double)i/(double)NUM_SPACECRAFT_BORDER_POINTS)*SPACECRAFT_VERTEX_RADIUS); // y
             coords.add(SPACECRAFT_HEIGHT/2.0); // z
-            spacecraftTopPoints.add(coords);
-            
-            coords = new ArrayList<>();
+            polygonPoints.add(coords);
+        }
+        
+        spacecraftPolygons.add(polygonPoints);
+        
+        polygonPoints = new ArrayList<>();
+        
+        for (int i = NUM_SPACECRAFT_BORDER_POINTS-1; i >= 0; i--) {
+            List<Double> coords = new ArrayList<>();
             coords.add(Math.cos(2.0*Math.PI*(double)i/(double)NUM_SPACECRAFT_BORDER_POINTS)*SPACECRAFT_VERTEX_RADIUS); // x
             coords.add(Math.sin(2.0*Math.PI*(double)i/(double)NUM_SPACECRAFT_BORDER_POINTS)*SPACECRAFT_VERTEX_RADIUS); // y
             coords.add(-SPACECRAFT_HEIGHT/2.0); // z
-            spacecraftBottomPoints.add(coords);
+            polygonPoints.add(coords);
         }
         
-        rodPoints.add(Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0));
-        rodPoints.add(Arrays.asList(0.0, 0.0, (SPACECRAFT_HEIGHT/2.0)+SPACECRAFT_ROD_LENGTH));
-        rodPoints.add(Arrays.asList(-1.0, 0.0, (SPACECRAFT_HEIGHT/2.0)+SPACECRAFT_ROD_LENGTH));
-        rodPoints.add(Arrays.asList(0.0, 0.0, (SPACECRAFT_HEIGHT/2.0)+SPACECRAFT_ROD_LENGTH));
-        
+        spacecraftPolygons.add(polygonPoints);
+
+        for (int i = 0; i < NUM_SPACECRAFT_BORDER_POINTS; i++) {
+            if (i < NUM_SPACECRAFT_BORDER_POINTS-1) {
+                List<List<Double>> spacecraftSidePolygon = new ArrayList<>();
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-i).get(0), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-i).get(1), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-i).get(2)));
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-(i+1)).get(0), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-(i+1)).get(1), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-(i+1)).get(2)));
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(i+1).get(0), spacecraftPolygons.get(0).get(i+1).get(1), spacecraftPolygons.get(0).get(i+1).get(2)));
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(i).get(0), spacecraftPolygons.get(0).get(i).get(1), spacecraftPolygons.get(0).get(i).get(2)));
+                spacecraftPolygons.add(spacecraftSidePolygon);
+            } else {
+                List<List<Double>> spacecraftSidePolygon = new ArrayList<>();
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-i).get(0), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-i).get(1), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-i).get(2)));
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1).get(0), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1).get(1), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1).get(2)));
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(0).get(0), spacecraftPolygons.get(0).get(0).get(1), spacecraftPolygons.get(0).get(0).get(2)));
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(i).get(0), spacecraftPolygons.get(0).get(i).get(1), spacecraftPolygons.get(0).get(i).get(2)));
+                spacecraftPolygons.add(spacecraftSidePolygon);                    
+            }
+        }
+
+        final List<Double> spacecraftTipCoords = Arrays.asList(0.0, 0.0, 3.0*SPACECRAFT_HEIGHT/4.0);
+
+        for (int i = 0; i < NUM_SPACECRAFT_BORDER_POINTS; i++) {
+            if (i < NUM_SPACECRAFT_BORDER_POINTS-1) {
+                List<List<Double>> spacecraftPointPolygon = new ArrayList<>();
+                spacecraftPointPolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(i).get(0), spacecraftPolygons.get(0).get(i).get(1), spacecraftPolygons.get(0).get(i).get(2)));
+                spacecraftPointPolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(i+1).get(0), spacecraftPolygons.get(0).get(i+1).get(1), spacecraftPolygons.get(0).get(i+1).get(2)));
+                spacecraftPointPolygon.add(Arrays.asList(spacecraftTipCoords.get(0), spacecraftTipCoords.get(1), spacecraftTipCoords.get(2)));
+                spacecraftPolygons.add(spacecraftPointPolygon);
+            }  else {
+                List<List<Double>> spacecraftPointPolygon = new ArrayList<>();
+                spacecraftPointPolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(i).get(0), spacecraftPolygons.get(0).get(i).get(1), spacecraftPolygons.get(0).get(i).get(2)));
+                spacecraftPointPolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(0).get(0), spacecraftPolygons.get(0).get(0).get(1), spacecraftPolygons.get(0).get(0).get(2)));
+                spacecraftPointPolygon.add(Arrays.asList(spacecraftTipCoords.get(0), spacecraftTipCoords.get(1), spacecraftTipCoords.get(2)));
+                spacecraftPolygons.add(spacecraftPointPolygon);                    
+            }
+        }
+
+        List<List<Double>> referencePointingPolygon = new ArrayList<>();
+        referencePointingPolygon.add(Arrays.asList(-SPACECRAFT_VERTEX_RADIUS, 0.0, SPACECRAFT_HEIGHT/2.0));
+        referencePointingPolygon.add(Arrays.asList(0.0, -0.15, spacecraftTipCoords.get(2)));
+        referencePointingPolygon.add(Arrays.asList(0.0, 0.15, spacecraftTipCoords.get(2)));
+        spacecraftPolygons.add(referencePointingPolygon);                    
+
+        spacecraftPolygons.remove(0); // Top edge of spacecraft hexagon shouldn't be shown because it's underneath the more-pointy surface now
+
         logger.info("Finished AttitudeModelServiceImpl() constructor.");
     }
 
@@ -86,34 +129,17 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
         double radiansToRotateZ = radiansPerSecondZ/stepSeconds;
 
         if (radiansToRotateX != 0 || radiansToRotateY != 0 || radiansToRotateZ != 0) {
-            for (int i = 0; i < NUM_SPACECRAFT_BORDER_POINTS; i++) {
-                List<Double> coords = spacecraftTopPoints.get(i);
-                Quarternion q = new Quarternion(0, coords.get(0), coords.get(1), coords.get(2));
-                q = rotate(q, radiansToRotateX, radiansToRotateY, radiansToRotateZ);
-                coords.set(0, q.getX());
-                coords.set(1, q.getY());
-                coords.set(2, q.getZ());
-                spacecraftTopPoints.set(i, coords);
-            }
-    
-            for (int i = 0; i < NUM_SPACECRAFT_BORDER_POINTS; i++) {
-                List<Double> coords = spacecraftBottomPoints.get(i);
-                Quarternion q = new Quarternion(0, coords.get(0), coords.get(1), coords.get(2));
-                q = rotate(q, radiansToRotateX, radiansToRotateY, radiansToRotateZ);
-                coords.set(0, q.getX());
-                coords.set(1, q.getY());
-                coords.set(2, q.getZ());
-                spacecraftBottomPoints.set(i, coords);
-            }
-
-            for (int i = 0; i < rodPoints.size(); i++) {
-                List<Double> coords = rodPoints.get(i);
-                Quarternion q = new Quarternion(0, coords.get(0), coords.get(1), coords.get(2));
-                q = rotate(q, radiansToRotateX, radiansToRotateY, radiansToRotateZ);
-                coords.set(0, q.getX());
-                coords.set(1, q.getY());
-                coords.set(2, q.getZ());
-                rodPoints.set(i, coords);
+            for (int i = 0; i < spacecraftPolygons.size(); i++) {
+                List<List<Double>> spacecraftPolygon = spacecraftPolygons.get(i);
+                for (int j = 0; j < spacecraftPolygon.size(); j++) {
+                    List<Double> coords = spacecraftPolygon.get(j);
+                    Quarternion q = new Quarternion(0, coords.get(0), coords.get(1), coords.get(2));
+                    q = rotate(q, radiansToRotateX, radiansToRotateY, radiansToRotateZ);
+                    coords.set(0, q.getX());
+                    coords.set(1, q.getY());
+                    coords.set(2, q.getZ());
+                    spacecraftPolygon.set(j, coords);
+                }
             }
 
             xAxisQuarternion = rotate(xAxisQuarternion, radiansToRotateX, radiansToRotateY, radiansToRotateZ);
@@ -176,110 +202,38 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
     }
     
     @Override
-    public List<List<Double>> getSpacecraftPoints() {
-        List<List<Double>> spacecraftPoints = new ArrayList<>();
-        
-        spacecraftPoints.addAll(spacecraftTopPoints);
-        spacecraftPoints.addAll(spacecraftBottomPoints);
-        spacecraftPoints.addAll(rodPoints);
-        
-        return spacecraftPoints;
-    }
-    
-    @Override
     public List<List<List<Double>>> getVisible2DProjectedSpacecraftPolygons() {
         List<List<List<Double>>> visibleSpacecraft2DProjectedPolygons = new ArrayList<>();
-        final List<List<Double>> projectedSpacecraftTopPoints = spacecraftTopPoints.stream()
-                .map(coords -> get2DProjectedSpacecraftCoords(coords))
+        final List<List<List<Double>>> projectedSpacecraftPolygons = spacecraftPolygons.stream()
+                .map(polygon -> polygon.stream().map(coords -> get2DProjectedSpacecraftCoords(coords)).collect(Collectors.toList()))
                 .collect(Collectors.toList());
-        final List<List<Double>> projectedSpacecraftBottomPoints = spacecraftBottomPoints.stream()
-                .map(coords -> get2DProjectedSpacecraftCoords(coords))
-                .collect(Collectors.toList());
-        final List<List<Double>> projectedRodPoints = rodPoints.stream()
-                .map(coords -> get2DProjectedSpacecraftCoords(coords))
-                .collect(Collectors.toList());
-        final List<List<Double>> projectedAxisPoints =
-                Arrays.asList(Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0),
-                              Arrays.asList(xAxisQuarternion.getX()*7, xAxisQuarternion.getY()*7, xAxisQuarternion.getZ()*7),
-                              Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0),
-                              Arrays.asList(yAxisQuarternion.getX()*7, yAxisQuarternion.getY()*7, yAxisQuarternion.getZ()*7),
-                              Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0),
-                              Arrays.asList(zAxisQuarternion.getX()*7, zAxisQuarternion.getY()*7, zAxisQuarternion.getZ()*7),
-                              Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0)
-                             )
-                      .stream().map(coords -> get2DProjectedSpacecraftCoords(coords)).collect(Collectors.toList());
-        
-        List<Double> u = new ArrayList<>();
-        u.add(projectedSpacecraftTopPoints.get(1).get(0) - projectedSpacecraftTopPoints.get(0).get(0));
-        u.add(projectedSpacecraftTopPoints.get(1).get(1) - projectedSpacecraftTopPoints.get(0).get(1));
-        u.add(projectedSpacecraftTopPoints.get(1).get(2) - projectedSpacecraftTopPoints.get(0).get(2));
 
-        List<Double> v = new ArrayList<>();
-        v.add(projectedSpacecraftTopPoints.get(2).get(0) - projectedSpacecraftTopPoints.get(1).get(0));
-        v.add(projectedSpacecraftTopPoints.get(2).get(1) - projectedSpacecraftTopPoints.get(1).get(1));
-        v.add(projectedSpacecraftTopPoints.get(2).get(2) - projectedSpacecraftTopPoints.get(1).get(2));
-        
-        if (LinearAlgebra.crossProduct3x3(u, v).get(2) > 0) { // if z > 0, cross product points toward the viewer from the screen
-            visibleSpacecraft2DProjectedPolygons.add(projectedSpacecraftTopPoints);
-        }
+//        final List<List<Double>> projectedAxisPolygons =
+//                Arrays.asList(Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0),
+//                              Arrays.asList(xAxisQuarternion.getX()*7, xAxisQuarternion.getY()*7, xAxisQuarternion.getZ()*7),
+//                              Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0),
+//                              Arrays.asList(yAxisQuarternion.getX()*7, yAxisQuarternion.getY()*7, yAxisQuarternion.getZ()*7),
+//                              Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0),
+//                              Arrays.asList(zAxisQuarternion.getX()*7, zAxisQuarternion.getY()*7, zAxisQuarternion.getZ()*7),
+//                              Arrays.asList(0.0, 0.0, SPACECRAFT_HEIGHT/2.0)
+//                             )
+//                      .stream().map(coords -> get2DProjectedSpacecraftCoords(coords)).collect(Collectors.toList());
 
-        u = new ArrayList<>();
-        u.add(projectedSpacecraftBottomPoints.get(2).get(0) - projectedSpacecraftBottomPoints.get(1).get(0));
-        u.add(projectedSpacecraftBottomPoints.get(2).get(1) - projectedSpacecraftBottomPoints.get(1).get(1));
-        u.add(projectedSpacecraftBottomPoints.get(2).get(2) - projectedSpacecraftBottomPoints.get(1).get(2));
-
-        v = new ArrayList<>();
-        v.add(projectedSpacecraftBottomPoints.get(1).get(0) - projectedSpacecraftBottomPoints.get(0).get(0));
-        v.add(projectedSpacecraftBottomPoints.get(1).get(1) - projectedSpacecraftBottomPoints.get(0).get(1));
-        v.add(projectedSpacecraftBottomPoints.get(1).get(2) - projectedSpacecraftBottomPoints.get(0).get(2));
-        
-        if (LinearAlgebra.crossProduct3x3(u, v).get(2) > 0) { // if z > 0, cross product points toward the viewer from the screen
-            visibleSpacecraft2DProjectedPolygons.add(projectedSpacecraftBottomPoints);
-        }
-
-        for (int i = 0; i < NUM_SPACECRAFT_BORDER_POINTS; i++) {
-            if (i < NUM_SPACECRAFT_BORDER_POINTS-1) {
-                u = new ArrayList<>();
-                u.add(projectedSpacecraftBottomPoints.get(i+1).get(0) - projectedSpacecraftBottomPoints.get(i).get(0));
-                u.add(projectedSpacecraftBottomPoints.get(i+1).get(1) - projectedSpacecraftBottomPoints.get(i).get(1));
-                u.add(projectedSpacecraftBottomPoints.get(i+1).get(2) - projectedSpacecraftBottomPoints.get(i).get(2));
-        
-                v = new ArrayList<>();
-                v.add(projectedSpacecraftTopPoints.get(i).get(0) - projectedSpacecraftBottomPoints.get(i).get(0));
-                v.add(projectedSpacecraftTopPoints.get(i).get(1) - projectedSpacecraftBottomPoints.get(i).get(1));
-                v.add(projectedSpacecraftTopPoints.get(i).get(2) - projectedSpacecraftBottomPoints.get(i).get(2));
-            } else {
-                u = new ArrayList<>();
-                u.add(projectedSpacecraftBottomPoints.get(0).get(0) - projectedSpacecraftBottomPoints.get(i).get(0));
-                u.add(projectedSpacecraftBottomPoints.get(0).get(1) - projectedSpacecraftBottomPoints.get(i).get(1));
-                u.add(projectedSpacecraftBottomPoints.get(0).get(2) - projectedSpacecraftBottomPoints.get(i).get(2));
-        
-                v = new ArrayList<>();
-                v.add(projectedSpacecraftTopPoints.get(i).get(0) - projectedSpacecraftBottomPoints.get(i).get(0));
-                v.add(projectedSpacecraftTopPoints.get(i).get(1) - projectedSpacecraftBottomPoints.get(i).get(1));
-                v.add(projectedSpacecraftTopPoints.get(i).get(2) - projectedSpacecraftBottomPoints.get(i).get(2));                
-            }
+        for (List<List<Double>> projectedSpacecraftPolygon : projectedSpacecraftPolygons) {
+            List<Double> u = new ArrayList<>();
+            u.add(projectedSpacecraftPolygon.get(1).get(0) - projectedSpacecraftPolygon.get(0).get(0));
+            u.add(projectedSpacecraftPolygon.get(1).get(1) - projectedSpacecraftPolygon.get(0).get(1));
+            u.add(projectedSpacecraftPolygon.get(1).get(2) - projectedSpacecraftPolygon.get(0).get(2));
+    
+            List<Double> v = new ArrayList<>();
+            v.add(projectedSpacecraftPolygon.get(2).get(0) - projectedSpacecraftPolygon.get(1).get(0));
+            v.add(projectedSpacecraftPolygon.get(2).get(1) - projectedSpacecraftPolygon.get(1).get(1));
+            v.add(projectedSpacecraftPolygon.get(2).get(2) - projectedSpacecraftPolygon.get(1).get(2));
             
             if (LinearAlgebra.crossProduct3x3(u, v).get(2) > 0) { // if z > 0, cross product points toward the viewer from the screen
-                if (i < NUM_SPACECRAFT_BORDER_POINTS-1) {
-                    List<List<Double>> spacecraftSidePolygon = new ArrayList<>();
-                    spacecraftSidePolygon.add(projectedSpacecraftBottomPoints.get(i));
-                    spacecraftSidePolygon.add(projectedSpacecraftBottomPoints.get(i+1));
-                    spacecraftSidePolygon.add(projectedSpacecraftTopPoints.get(i+1));
-                    spacecraftSidePolygon.add(projectedSpacecraftTopPoints.get(i));
-                    visibleSpacecraft2DProjectedPolygons.add(spacecraftSidePolygon);
-                } else {
-                    List<List<Double>> spacecraftSidePolygon = new ArrayList<>();
-                    spacecraftSidePolygon.add(projectedSpacecraftBottomPoints.get(i));
-                    spacecraftSidePolygon.add(projectedSpacecraftBottomPoints.get(0));
-                    spacecraftSidePolygon.add(projectedSpacecraftTopPoints.get(0));
-                    spacecraftSidePolygon.add(projectedSpacecraftTopPoints.get(i));
-                    visibleSpacecraft2DProjectedPolygons.add(spacecraftSidePolygon);                    
-                }
-            }
+                visibleSpacecraft2DProjectedPolygons.add(projectedSpacecraftPolygon);
+            }    
         }
-
-        visibleSpacecraft2DProjectedPolygons.add(projectedRodPoints);
 
         //visibleSpacecraft2DProjectedPolygons.add(projectedAxisPoints);
  
