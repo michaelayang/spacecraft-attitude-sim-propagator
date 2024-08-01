@@ -30,9 +30,9 @@ public class SpacecraftPropagatorController {
     private AttitudeModelService attitudeModelService;
 
     @RequestMapping(value = "/init", method = RequestMethod.PUT, produces=MediaType.APPLICATION_JSON_VALUE)
-    public List<List<List<Double>>> init(@RequestBody Double momentOfInertia) {
-        logger.info("momentOfInertia param is {}", momentOfInertia);
-        List<List<List<Double>>> spacecraftPoints = attitudeModelService.init(momentOfInertia);
+    public List<List<List<Double>>> init(@RequestBody List<Double> momentOfInertiaValues) {
+        logger.info("momentOfInertia params are {}, {}, {}", momentOfInertiaValues.get(0), momentOfInertiaValues.get(1), momentOfInertiaValues.get(2));
+        List<List<List<Double>>> spacecraftPoints = attitudeModelService.init(momentOfInertiaValues.get(0), momentOfInertiaValues.get(1), momentOfInertiaValues.get(2));
         if (spacecraftPoints == null || spacecraftPoints.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No attitude quarternion data returned");
         }
