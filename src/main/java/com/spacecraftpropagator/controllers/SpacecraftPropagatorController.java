@@ -65,11 +65,11 @@ public class SpacecraftPropagatorController {
 
     @RequestMapping(value = "/getSunSensorValue", method = RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
     public double getSunSensorValue() {
-        final List<Double> yAxisCoords = Arrays.asList(attitudeModelService.getYAxisQuarternion().getX(),
-                                                       -attitudeModelService.getYAxisQuarternion().getY(),
-                                                       attitudeModelService.getYAxisQuarternion().getZ());
-        final List<Double> sunVector = Arrays.asList(0.0, -1.0, 0.0);
-        double sunSensorValue = LinearAlgebra.dotProduct3x3(yAxisCoords, sunVector); // will return cosine of angle between spacecraft Y axis and sun vector towards left side of screen
+        final List<Double> xAxisCoords = Arrays.asList(-attitudeModelService.getXAxisQuarternion().getX(),
+                                                       attitudeModelService.getXAxisQuarternion().getY(),
+                                                       attitudeModelService.getXAxisQuarternion().getZ());
+        final List<Double> sunVector = Arrays.asList(-1.0, 0.0, 0.0);
+        double sunSensorValue = LinearAlgebra.dotProduct3x3(xAxisCoords, sunVector); // will return cosine of angle between spacecraft -X axis and sun vector towards left side of screen
         
         logger.info("+++++++++++++++ yAxis is {}, spacecraft sun sensor value is {} +++++++++++",
                     attitudeModelService.getYAxisQuarternion(), sunSensorValue);
