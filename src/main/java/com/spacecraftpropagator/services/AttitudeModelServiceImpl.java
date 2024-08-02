@@ -1,6 +1,6 @@
 package com.spacecraftpropagator.services;
 
-import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spacecraftpropagator.model.LinearAlgebra;
 import com.spacecraftpropagator.model.Quarternion;
@@ -18,8 +19,9 @@ import com.spacecraftpropagator.model.Quarternion;
 @Service
 public class AttitudeModelServiceImpl implements AttitudeModelService {
 
-    private static final String SPACECRAFT_POLYGONS_DATA_JSON_FILENAME = "spacecraftPolygonsData.json";
-
+    private static int NUM_SPACECRAFT_BORDER_POINTS = 6;
+    private static double SPACECRAFT_VERTEX_RADIUS = 10; // meters
+    private static double SPACECRAFT_HEIGHT = 6.0; // meters
     private static double VIEWING_DISTANCE = 100; // 100 m
 
     private double momentOfInertiaX; // kg-m^2
@@ -38,17 +40,90 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
 
     Logger logger = LoggerFactory.getLogger(AttitudeModelServiceImpl.class);
 
-    @SuppressWarnings("unchecked")
     public AttitudeModelServiceImpl() {
         spacecraftPolygons = new ArrayList<>();
+        
+        List<List<Double>> polygonPoints = new ArrayList<>();
+
+        for (int i = 0; i < NUM_SPACECRAFT_BORDER_POINTS; i++) {
+            List<Double> coords = new ArrayList<>();
+            coords.add(Math.cos(2.0*Math.PI*(double)i/(double)NUM_SPACECRAFT_BORDER_POINTS)*SPACECRAFT_VERTEX_RADIUS); // x
+            coords.add(Math.sin(2.0*Math.PI*(double)i/(double)NUM_SPACECRAFT_BORDER_POINTS)*SPACECRAFT_VERTEX_RADIUS); // y
+            coords.add(SPACECRAFT_HEIGHT/2.0); // z
+            polygonPoints.add(coords);
+        }
+        
+        spacecraftPolygons.add(polygonPoints);
+        
+        polygonPoints = new ArrayList<>();
+        
+        for (int i = NUM_SPACECRAFT_BORDER_POINTS-1; i >= 0; i--) {
+            List<Double> coords = new ArrayList<>();
+            coords.add(Math.cos(2.0*Math.PI*(double)i/(double)NUM_SPACECRAFT_BORDER_POINTS)*SPACECRAFT_VERTEX_RADIUS); // x
+            coords.add(Math.sin(2.0*Math.PI*(double)i/(double)NUM_SPACECRAFT_BORDER_POINTS)*SPACECRAFT_VERTEX_RADIUS); // y
+            coords.add(-SPACECRAFT_HEIGHT/2.0); // z
+            polygonPoints.add(coords);
+        }
+        
+        spacecraftPolygons.add(polygonPoints);
+
+        for (int i = 0; i < NUM_SPACECRAFT_BORDER_POINTS; i++) {
+            if (i < NUM_SPACECRAFT_BORDER_POINTS-1) {
+                List<List<Double>> spacecraftSidePolygon = new ArrayList<>();
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-i).get(0), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-i).get(1), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-i).get(2)));
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-(i+1)).get(0), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-(i+1)).get(1), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-(i+1)).get(2)));
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(i+1).get(0), spacecraftPolygons.get(0).get(i+1).get(1), spacecraftPolygons.get(0).get(i+1).get(2)));
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(i).get(0), spacecraftPolygons.get(0).get(i).get(1), spacecraftPolygons.get(0).get(i).get(2)));
+                spacecraftPolygons.add(spacecraftSidePolygon);
+            } else {
+                List<List<Double>> spacecraftSidePolygon = new ArrayList<>();
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-i).get(0), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-i).get(1), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1-i).get(2)));
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1).get(0), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1).get(1), spacecraftPolygons.get(1).get(NUM_SPACECRAFT_BORDER_POINTS-1).get(2)));
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(0).get(0), spacecraftPolygons.get(0).get(0).get(1), spacecraftPolygons.get(0).get(0).get(2)));
+                spacecraftSidePolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(i).get(0), spacecraftPolygons.get(0).get(i).get(1), spacecraftPolygons.get(0).get(i).get(2)));
+                spacecraftPolygons.add(spacecraftSidePolygon);                    
+            }
+        }
+
+        final List<Double> spacecraftTipCoords = Arrays.asList(0.0, 0.0, 3.0*SPACECRAFT_HEIGHT/4.0);
+
+        for (int i = 0; i < NUM_SPACECRAFT_BORDER_POINTS; i++) {
+            if (i < NUM_SPACECRAFT_BORDER_POINTS-1) {
+                List<List<Double>> spacecraftPointPolygon = new ArrayList<>();
+                spacecraftPointPolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(i).get(0), spacecraftPolygons.get(0).get(i).get(1), spacecraftPolygons.get(0).get(i).get(2)));
+                spacecraftPointPolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(i+1).get(0), spacecraftPolygons.get(0).get(i+1).get(1), spacecraftPolygons.get(0).get(i+1).get(2)));
+                spacecraftPointPolygon.add(Arrays.asList(spacecraftTipCoords.get(0), spacecraftTipCoords.get(1), spacecraftTipCoords.get(2)));
+                spacecraftPolygons.add(spacecraftPointPolygon);
+            }  else {
+                List<List<Double>> spacecraftPointPolygon = new ArrayList<>();
+                spacecraftPointPolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(i).get(0), spacecraftPolygons.get(0).get(i).get(1), spacecraftPolygons.get(0).get(i).get(2)));
+                spacecraftPointPolygon.add(Arrays.asList(spacecraftPolygons.get(0).get(0).get(0), spacecraftPolygons.get(0).get(0).get(1), spacecraftPolygons.get(0).get(0).get(2)));
+                spacecraftPointPolygon.add(Arrays.asList(spacecraftTipCoords.get(0), spacecraftTipCoords.get(1), spacecraftTipCoords.get(2)));
+                spacecraftPolygons.add(spacecraftPointPolygon);                    
+            }
+        }
+
+        List<List<Double>> referencePointingPolygon = new ArrayList<>();
+        referencePointingPolygon.add(Arrays.asList(-SPACECRAFT_VERTEX_RADIUS, 0.0, SPACECRAFT_HEIGHT/2.0));
+        referencePointingPolygon.add(Arrays.asList(0.0, -0.15, spacecraftTipCoords.get(2)));
+        referencePointingPolygon.add(Arrays.asList(0.0, 0.15, spacecraftTipCoords.get(2)));
+        spacecraftPolygons.add(referencePointingPolygon);                    
+
+        spacecraftPolygons.remove(0); // Top edge of spacecraft hexagon shouldn't be shown because it's underneath the more-pointy surface now
 
         ObjectMapper objectMapper = new ObjectMapper();
-        String filename = SPACECRAFT_POLYGONS_DATA_JSON_FILENAME;
-        try (FileInputStream infileStream = new FileInputStream(filename)) {
-            spacecraftPolygons = objectMapper.readValue(infileStream, List.class);
-            logger.info("spacecraftPolygons read in:  {}", spacecraftPolygons);
-        } catch (IOException e) {
-            logger.error("Error reading filename {}:  ", filename, e);
+        try {
+            String filename = "polygonsData.json";
+            String polygonsString = objectMapper.writeValueAsString(spacecraftPolygons);
+            try (FileOutputStream out = new FileOutputStream(filename)) {
+                out.write(polygonsString.getBytes());
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
 
         logger.info("Finished AttitudeModelServiceImpl() constructor.");
