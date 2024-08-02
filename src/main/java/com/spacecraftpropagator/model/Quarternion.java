@@ -36,17 +36,24 @@ public class Quarternion {
     
     public Quarternion rotate(Quarternion angularVelocityAxisQuarternion, double angleToRotate) {
         
-        double norm = angularVelocityAxisQuarternion.norm();
+//        double norm = angularVelocityAxisQuarternion.norm();
         
-        Quarternion unitAxisQuarternion = new Quarternion(angularVelocityAxisQuarternion.r/norm,
-                                                          angularVelocityAxisQuarternion.x/norm,
-                                                          angularVelocityAxisQuarternion.y/norm,
-                                                          angularVelocityAxisQuarternion.z/norm);
+//        Quarternion unitAxisQuarternion = new Quarternion(angularVelocityAxisQuarternion.r/norm,
+//                                                          angularVelocityAxisQuarternion.x/norm,
+//                                                          angularVelocityAxisQuarternion.y/norm,
+//                                                          angularVelocityAxisQuarternion.z/norm);
+
+//        double startingQNorm = norm();
+
+//        Quarternion q = new Quarternion(Math.cos(angleToRotate/2.0),
+//                                        unitAxisQuarternion.x * Math.sin(angleToRotate/2.0),
+//                                        unitAxisQuarternion.y * Math.sin(angleToRotate/2.0),
+//                                        unitAxisQuarternion.z * Math.sin(angleToRotate/2.0));
         
-        Quarternion q = new Quarternion(Math.cos(angleToRotate/2.0),
-                                        unitAxisQuarternion.x * Math.sin(angleToRotate/2.0),
-                                        unitAxisQuarternion.y * Math.sin(angleToRotate/2.0),
-                                        unitAxisQuarternion.z * Math.sin(angleToRotate/2.0));
+      Quarternion q = new Quarternion(Math.cos(angleToRotate/2.0),
+              angularVelocityAxisQuarternion.x * Math.sin(angleToRotate/2.0),
+              angularVelocityAxisQuarternion.y * Math.sin(angleToRotate/2.0),
+              angularVelocityAxisQuarternion.z * Math.sin(angleToRotate/2.0));
 
         Quarternion intermediateQ = qMultiply(q.r, q.x, q.y, q.z,
                                               r, x, y, z);
@@ -55,7 +62,14 @@ public class Quarternion {
 
         Quarternion resultQ = qMultiply(intermediateQ.r, intermediateQ.x, intermediateQ.y, intermediateQ.z,
                                         inverseQ.r, inverseQ.x, inverseQ.y, inverseQ.z);
+
+//        double endingQNorm = resultQ.norm();
         
+//        resultQ = new Quarternion(resultQ.getR()*startingQNorm/endingQNorm,
+//                                  resultQ.getX()*startingQNorm/endingQNorm,
+//                                  resultQ.getY()*startingQNorm/endingQNorm,
+//                                  resultQ.getZ()*startingQNorm/endingQNorm);
+
         return resultQ;
     }
     
