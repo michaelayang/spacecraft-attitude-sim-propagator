@@ -134,7 +134,7 @@ angular.module('DisplaySpacecraftAttitude', []).controller("mainController", fun
     canvasContext.strokeText("Initializing...", 0, 25);
 
     var spacecraftPointsRecords = [];
-    $http.put("http://localhost:8080/init", "[ 3.3, 3.3, 10.0 ]")
+    $http.put("http://localhost:8080/init")
       .then(function(initializeResponse) {
       clearCanvas();
       canvasContext.strokeText("Initializing...", 0, 25);

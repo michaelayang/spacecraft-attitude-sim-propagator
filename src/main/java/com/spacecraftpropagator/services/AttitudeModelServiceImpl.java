@@ -19,6 +19,7 @@ import com.spacecraftpropagator.model.Quarternion;
 public class AttitudeModelServiceImpl implements AttitudeModelService {
 
     private static final String SPACECRAFT_POLYGONS_DATA_JSON_FILENAME = "spacecraftPolygonsData.json";
+    private static final String MOMENT_OF_INERTIA_VALUES_JSON_FILENAME = "momentOfInertiaValues.json";
 
     private static double VIEWING_DISTANCE = 100; // 100 m
 
@@ -43,25 +44,31 @@ public class AttitudeModelServiceImpl implements AttitudeModelService {
         spacecraftPolygons = new ArrayList<>();
 
         ObjectMapper objectMapper = new ObjectMapper();
-        String filename = SPACECRAFT_POLYGONS_DATA_JSON_FILENAME;
-        try (FileInputStream infileStream = new FileInputStream(filename)) {
+        try (FileInputStream infileStream = new FileInputStream(SPACECRAFT_POLYGONS_DATA_JSON_FILENAME)) {
             spacecraftPolygons = objectMapper.readValue(infileStream, List.class);
             logger.info("spacecraftPolygons read in:  {}", spacecraftPolygons);
         } catch (IOException e) {
-            logger.error("Error reading filename {}:  ", filename, e);
+            logger.error("Error reading spacecraftPolygons filename {}:  ", SPACECRAFT_POLYGONS_DATA_JSON_FILENAME, e);
         }
 
+        try (FileInputStream infileStream = new FileInputStream(MOMENT_OF_INERTIA_VALUES_JSON_FILENAME)) {
+            final List<Double> momentOfInertiaValues = objectMapper.readValue(infileStream, List.class);
+ 
+            this.momentOfInertiaX = momentOfInertiaValues.get(0);
+            this.momentOfInertiaY = momentOfInertiaValues.get(1);
+            this.momentOfInertiaZ = momentOfInertiaValues.get(2);
+
+            logger.info("momentOfInertia initialization:  ({}, {}, {})", momentOfInertiaX, momentOfInertiaY, momentOfInertiaZ);
+
+        } catch (IOException e) {
+            logger.error("Error reading momentOfInertia values filename {}:  ", MOMENT_OF_INERTIA_VALUES_JSON_FILENAME, e);
+        }
+        
         logger.info("Finished AttitudeModelServiceImpl() constructor.");
     }
 
     @Override
-    public List<List<List<Double>>> init(double momentOfInertiaX, double momentOfInertiaY, double momentOfInertiaZ) { 
-        this.momentOfInertiaX = momentOfInertiaX;
-        this.momentOfInertiaY = momentOfInertiaY;
-        this.momentOfInertiaZ = momentOfInertiaZ;
-        
-        logger.info("momentOfInertia initialization:  ({}, {}, {})", momentOfInertiaX, momentOfInertiaY, momentOfInertiaZ);
-        
+    public List<List<List<Double>>> init() {        
         return getVisible2DProjectedSpacecraftPolygons();
     }
 
