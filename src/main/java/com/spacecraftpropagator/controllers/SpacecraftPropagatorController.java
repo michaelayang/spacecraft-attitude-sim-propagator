@@ -79,7 +79,7 @@ public class SpacecraftPropagatorController {
     }
 
     @RequestMapping(value = "/getSunSensorValue", method = RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
-    public double getSunSensorValue() {
+    public synchronized double getSunSensorValue() {
         final List<Double> xAxisCoords = Arrays.asList(-attitudeModelService.getXAxisQuarternion().getX(),
                                                        attitudeModelService.getXAxisQuarternion().getY(),
                                                        attitudeModelService.getXAxisQuarternion().getZ());
