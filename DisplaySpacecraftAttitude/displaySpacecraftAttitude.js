@@ -165,8 +165,7 @@ angular.module('DisplaySpacecraftAttitude', []).controller("mainController", fun
 
       clearCanvas();
       canvasContext.strokeText("Initial Z Counter-clockwise torque JSON is "
-                               + "{ \"torqueQuarternion\": { \"r\": " + torqueCounterClockwiseQuarternion[0] + ", \"x\": " + torqueCounterClockwiseQuarternion[1] + ", \"y\": " + torqueCounterClockwiseQuarternion[2] + ", \"z\": " + torqueCounterClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": -1.0, \"secondsToApplyTorque\":  1.0 }"
-                               //+ JSON.stringify({ torqueQuarternion: { r: 0, x: 0, y: 0, z: 1 }, torqueNewtonMeters: -1.0, secondsToApplyTorque:  1.0 })
+                               + "{ \"torqueQuarternion\": { \"r\": " + torqueCounterClockwiseQuarternion[0] + ", \"x\": " + torqueCounterClockwiseQuarternion[1] + ", \"y\": " + torqueCounterClockwiseQuarternion[2] + ", \"z\": " + torqueCounterClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": -1.0, \"secondsToApplyTorque\":  0.1 }"
                                , 0, 25);
 
     }, function(errorResponse) {
@@ -180,7 +179,7 @@ angular.module('DisplaySpacecraftAttitude', []).controller("mainController", fun
 
     while (true) {
 
-      $http.post("http://localhost:8080/step", 1.0)
+      $http.post("http://localhost:8080/step", ANIMATION_FRAME_PERIOD_MSECS/1000.0)
         .then(function(stepResponse) {
 
         clearCanvas();
@@ -219,7 +218,7 @@ angular.module('DisplaySpacecraftAttitude', []).controller("mainController", fun
 
   $scope.torqueZCounterClockwise = function() {
     $http.post("http://localhost:8080/torque",
-               "{ \"torqueQuarternion\": { \"r\": " + torqueZCounterClockwiseQuarternion[0] + ", \"x\": " + torqueZCounterClockwiseQuarternion[1] + ", \"y\": " + torqueZCounterClockwiseQuarternion[2] + ", \"z\": " + torqueZCounterClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
+               "{ \"torqueQuarternion\": { \"r\": " + torqueZCounterClockwiseQuarternion[0] + ", \"x\": " + torqueZCounterClockwiseQuarternion[1] + ", \"y\": " + torqueZCounterClockwiseQuarternion[2] + ", \"z\": " + torqueZCounterClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 0.1, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
       .then(function(torqueCounterClockwiseResponse) {
       angularVelocityQuarternion = JSON.stringify(torqueCounterClockwiseResponse.data);
 
@@ -234,7 +233,7 @@ angular.module('DisplaySpacecraftAttitude', []).controller("mainController", fun
 
   $scope.torqueZClockwise = function() {
     $http.post("http://localhost:8080/torque",
-               "{ \"torqueQuarternion\": { \"r\": " + torqueZClockwiseQuarternion[0] + ", \"x\": " + torqueZClockwiseQuarternion[1] + ", \"y\": " + torqueZClockwiseQuarternion[2] + ", \"z\": " + torqueZClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
+               "{ \"torqueQuarternion\": { \"r\": " + torqueZClockwiseQuarternion[0] + ", \"x\": " + torqueZClockwiseQuarternion[1] + ", \"y\": " + torqueZClockwiseQuarternion[2] + ", \"z\": " + torqueZClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 0.1, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
       .then(function(torqueClockwiseResponse) {
       angularVelocityQuarternion = JSON.stringify(torqueClockwiseResponse.data);
 
@@ -249,7 +248,7 @@ angular.module('DisplaySpacecraftAttitude', []).controller("mainController", fun
 
   $scope.torqueXCounterClockwise = function() {
     $http.post("http://localhost:8080/torque",
-               "{ \"torqueQuarternion\": { \"r\": " + torqueXCounterClockwiseQuarternion[0] + ", \"x\": " + torqueXCounterClockwiseQuarternion[1] + ", \"y\": " + torqueXCounterClockwiseQuarternion[2] + ", \"z\": " + torqueXCounterClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
+               "{ \"torqueQuarternion\": { \"r\": " + torqueXCounterClockwiseQuarternion[0] + ", \"x\": " + torqueXCounterClockwiseQuarternion[1] + ", \"y\": " + torqueXCounterClockwiseQuarternion[2] + ", \"z\": " + torqueXCounterClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 0.1, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
       .then(function(torqueCounterClockwiseResponse) {
       angularVelocityQuarternion = JSON.stringify(torqueCounterClockwiseResponse.data);
 
@@ -264,7 +263,7 @@ angular.module('DisplaySpacecraftAttitude', []).controller("mainController", fun
 
   $scope.torqueXClockwise = function() {
     $http.post("http://localhost:8080/torque",
-               "{ \"torqueQuarternion\": { \"r\": " + torqueXClockwiseQuarternion[0] + ", \"x\": " + torqueXClockwiseQuarternion[1] + ", \"y\": " + torqueXClockwiseQuarternion[2] + ", \"z\": " + torqueXClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
+               "{ \"torqueQuarternion\": { \"r\": " + torqueXClockwiseQuarternion[0] + ", \"x\": " + torqueXClockwiseQuarternion[1] + ", \"y\": " + torqueXClockwiseQuarternion[2] + ", \"z\": " + torqueXClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 0.1, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
       .then(function(torqueClockwiseResponse) {
       angularVelocityQuarternion = JSON.stringify(torqueClockwiseResponse.data);
 
@@ -279,7 +278,7 @@ angular.module('DisplaySpacecraftAttitude', []).controller("mainController", fun
 
   $scope.torqueYCounterClockwise = function() {
     $http.post("http://localhost:8080/torque",
-               "{ \"torqueQuarternion\": { \"r\": " + torqueYCounterClockwiseQuarternion[0] + ", \"x\": " + torqueYCounterClockwiseQuarternion[1] + ", \"y\": " + torqueYCounterClockwiseQuarternion[2] + ", \"z\": " + torqueYCounterClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
+               "{ \"torqueQuarternion\": { \"r\": " + torqueYCounterClockwiseQuarternion[0] + ", \"x\": " + torqueYCounterClockwiseQuarternion[1] + ", \"y\": " + torqueYCounterClockwiseQuarternion[2] + ", \"z\": " + torqueYCounterClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 0.1, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
       .then(function(torqueClockwiseResponse) {
       angularVelocityQuarternion = JSON.stringify(torqueClockwiseResponse.data);
 
@@ -294,7 +293,7 @@ angular.module('DisplaySpacecraftAttitude', []).controller("mainController", fun
 
   $scope.torqueYClockwise = function() {
     $http.post("http://localhost:8080/torque",
-               "{ \"torqueQuarternion\": { \"r\": " + torqueYClockwiseQuarternion[0] + ", \"x\": " + torqueYClockwiseQuarternion[1] + ", \"y\": " + torqueYClockwiseQuarternion[2] + ", \"z\": " + torqueYClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 1.0, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
+               "{ \"torqueQuarternion\": { \"r\": " + torqueYClockwiseQuarternion[0] + ", \"x\": " + torqueYClockwiseQuarternion[1] + ", \"y\": " + torqueYClockwiseQuarternion[2] + ", \"z\": " + torqueYClockwiseQuarternion[3] + "}, \"torqueNewtonMeters\": 0.1, \"secondsToApplyTorque\":  " + ANIMATION_FRAME_PERIOD_MSECS/1000.0 + " }")
       .then(function(torqueClockwiseResponse) {
       angularVelocityQuarternion = JSON.stringify(torqueClockwiseResponse.data);
 
