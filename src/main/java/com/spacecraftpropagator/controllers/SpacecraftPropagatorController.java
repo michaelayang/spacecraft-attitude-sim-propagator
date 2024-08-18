@@ -91,4 +91,18 @@ public class SpacecraftPropagatorController {
 
         return sunSensorValue;
     }
+
+    @RequestMapping(value = "/getIRValue", method = RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+    public synchronized double getIRValue() {
+        final List<Double> yAxisCoords = Arrays.asList(attitudeModelService.getYAxisQuarternion().getX(),
+                                                       -attitudeModelService.getYAxisQuarternion().getY(),
+                                                       attitudeModelService.getYAxisQuarternion().getZ());
+        final List<Double> irVector = Arrays.asList(0.0, -1.0, 0.0);
+        double irSensorValue = LinearAlgebra.dotProduct3x3(yAxisCoords, irVector); // will return cosine of angle between spacecraft -Y axis and IR vector towards bottom of screen, representing IR emissions from Earth
+        
+        logger.info("+++++++++++++++ yAxis is {}, spacecraft IR value is {} +++++++++++",
+                    attitudeModelService.getYAxisQuarternion(), irSensorValue);
+
+        return irSensorValue;
+    }
 }
